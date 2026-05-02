@@ -1,4 +1,4 @@
-# 🖼️ Synthetic Source Attribution Challenge
+# Synthetic Source Attribution Challenge
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-ee4c2c.svg)](https://pytorch.org/)
@@ -6,10 +6,10 @@
 
 This repository contains a professional implementation of an image classification pipeline designed for the **Synthetic Source Attribution Challenge**. The goal is to identify the origin of synthetic images with high precision using deep learning.
 
-## 🚀 Project Overview
+## Project Overview
 The pipeline implements a state-of-the-art image classification approach utilizing the **ConvNeXt** architecture. To ensure the model's robustness and generalization, I employed a combination of **Stratified K-Fold Cross-Validation**, **Label Smoothing**, and **Test-Time Augmentation (TTA)**.
 
-## 🛠️ Technical Methodology
+## Technical Methodology
 
 ### 1. Model Architecture
 I utilized the $\text{ConvNeXt-Tiny}$ model (pretrained on $\text{ImageNet-22K}$) via the `timm` library. ConvNeXt provides a modern take on convolutional neural networks, offering performance competitive with Vision Transformers (ViTs) while maintaining the efficiency of CNNs.
@@ -30,7 +30,7 @@ To maximize the final score, the following techniques were used:
 - **TTA (Test Time Augmentation):** Each test image $x$ was passed through the model in two versions (Original $x$ and Horizontally Flipped $x_{flip}$):
 $$\text{Final Prob} = \frac{P(y|x) + P(y|x_{flip})}{2}$$
 
-## 📥 Data Acquisition
+## Data Acquisition
 
 Since the dataset is too large to be hosted on GitHub, you must download it from Kaggle (using Kaggle API).
 
@@ -39,7 +39,7 @@ pip install kaggle
 kaggle competitions download -c synthetic-source-attribution-challenge
 ```
 
-## 📁 Project Structure
+## Project Structure
 The project is organized into a modular structure to ensure maintainability and scalability:
 ```bash
 synthetic-source-attribution/
