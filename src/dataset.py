@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader, Dataset
 from typing import Tuple, Optional, Any
 
 class ImageDataset(Dataset):
-    def __init__(self, dataframe: pd.DataFrame, img_dir: str, transform: Optional[transforms.Compose] = None):
+    def __init__(self, dataframe: pd.DataFrame, img_dir: str, transform: Optional[v2.Compose] = None):
         self.df = dataframe
         self.img_dir = img_dir
         self.transform = transform
