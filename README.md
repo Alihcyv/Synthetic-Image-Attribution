@@ -2,33 +2,36 @@
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-ee4c2c.svg)](https://pytorch.org/)
-[![Kaggle](https://img.shields.io/badge/Kaggle-Competition-blue)](https://www.kaggle.com/)
+[![Kaggle](https://img.shields.io/badge/Kaggle-Competition-blue)](https://www.kaggle.com/competitions/dlmmdd-workshop-synthetic-source-attribution-challenge/overview)
+
 
 This repository contains a professional implementation of an image classification pipeline designed for the **Synthetic Source Attribution Challenge**. The goal is to identify the origin of synthetic images with high precision using deep learning.
 
 ## Project Overview
-The pipeline implements a state-of-the-art image classification approach utilizing the **ConvNeXt** architecture. To ensure the model's robustness and generalization, I employed a combination of **Stratified K-Fold Cross-Validation**, **Label Smoothing**, and **Test-Time Augmentation (TTA)**.
+
+Spectral-HELIX is a high-performance deep learning pipeline designed for Synthetic Source Attribution—the task of identifying the specific generative model (e.g., GAN or Diffusion) that produced a synthetic image.
+
+The framework leverages a hybrid architecture that combines a ConvNeXt-Tiny backbone for high-level spatial feature extraction and a custom Spectral Branch to detect subtle frequency-domain artifacts (fingerprints) left by generative processes. A Dynamic Gating Network intelligently fuses these two pathways, allowing the model to adaptively weight spatial vs. spectral evidence for every individual image.
 
 ## Technical Methodology
 
-### 1. Model Architecture
-I utilized the $\text{ConvNeXt-Tiny}$ model (pretrained on $\text{ImageNet-22K}$) via the `timm` library. ConvNeXt provides a modern take on convolutional neural networks, offering performance competitive with Vision Transformers (ViTs) while maintaining the efficiency of CNNs.
+### 1. Hybrid Spectral-Spatial Architecture
+The model employs two parallel pathways:
+- **Spatial Path:** A **ConvNeXt-Tiny** backbone extracting high-level semantic and textural features.
+- **Spectral Path:** A custom branch utilizing **Learnable Fourier Filters**. It transforms features into the frequency domain to identify periodic artifacts.
 
-### 2. Training Strategy
-- **Cross-Validation:** A 10-Fold Stratified K-Fold approach was used. The validation accuracy is calculated as the mean of all folds:
-$$\text{CV Accuracy} = \frac{1}{K} \sum_{i=1}^{K} \text{Acc}_i$$
-- **Regularization:** 
-    - **Label Smoothing:** Used to prevent the model from becoming over-confident. The target distribution is modified as:
-      $$y_{ls} = y(1 - \alpha) + \frac{\alpha}{K}$$
-      where $\alpha=0.1$ and $K$ is the number of classes.
-    - **Learning Rate Scheduler:** Implemented $\text{CosineAnnealingWarmRestarts}$ to optimize convergence.
-- **Augmentation:** A custom pipeline including $\text{GaussianBlur}$ and $\text{RandomAutocontrast}$ was applied to improve generalization.
+### 2. Dynamic Gating Mechanism
+To optimize the fusion of the two paths, a **Dynamic Gating Network** was implemented. Instead of static averaging, the model adaptively calculates the trust weight for each path based on the image features:
 
-### 3. Inference & Ensemble
-To maximize the final score, the following techniques were used:
-- **Ensembling:** Averaging softmax probabilities from all $K=10$ fold-models.
-- **TTA (Test Time Augmentation):** Each test image $x$ was passed through the model in two versions (Original $x$ and Horizontally Flipped $x_{flip}$):
-$$\text{Final Prob} = \frac{P(y|x) + P(y|x_{flip})}{2}$$
+$$ \text{Final Logits} = g \cdot \text{SpectralLogits} + (1 - g) \cdot \text{SpatialLogits} $$
+$$\text{where } g = \sigma(\text{GatingNet}(\text{features}))$$
+
+### 3. Training and Regularization
+To achieve a validation accuracy of **97.7%**, the following techniques were utilized:
+- **EMA (Exponential Moving Average):** $\theta_{EMA}^{(t)} = \beta \theta_{EMA}^{(t-1)} + (1 - \beta) \theta^{(t)}$, where $\beta=0.999$.
+- **Stratified K-Fold Cross-Validation:** Ensuring robustness across $K=6$ folds.
+- **Label Smoothing:** Modifying targets to prevent over-confidence: $y_{ls} = y(1 - \alpha) + \frac{\alpha}{K}$.
+- **Advanced TTA (Test-Time Augmentation):** Averaging predictions across 5 augmented versions of each test image.
 
 ## Data Acquisition
 
