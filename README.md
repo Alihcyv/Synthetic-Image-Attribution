@@ -4,35 +4,20 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-ee4c2c.svg)](https://pytorch.org/)
 [![Kaggle](https://img.shields.io/badge/Kaggle-Competition-blue)](https://www.kaggle.com/competitions/dlmmdd-workshop-synthetic-source-attribution-challenge/overview)
 
+We present a robust framework for the task of synthetic image source attribution, aiming to identify the specific generative model used to create a synthetic image. We propose the Spectral-HELIX architecture, which combines a state-of-the-art spatial backbone with a learnable spectral filtering branch. By analyzing both spatial features and frequency-domain artifacts, the model can capture the "fingerprints" left by different generative sources. We investigate the impact of various backbones (ResNet50, ConvNeXt, EfficientNetV2), the role of image resolution, and the effect of advanced regularization techniques such as Mixup and Exponential Moving Average (EMA). Our final ensemble approach achieves a high generalization accuracy, demonstrating that diversifying model architectures is key to overcoming the performance ceiling.
 
-This repository contains a professional implementation of an image classification pipeline designed for the **Synthetic Source Attribution Challenge**. The goal is to identify the origin of synthetic images with high precision using deep learning.
-
-## Project Overview
-
-Spectral-HELIX is a high-performance deep learning pipeline designed for Synthetic Source Attribution—the task of identifying the specific generative model (e.g., GAN or Diffusion) that produced a synthetic image.
-
-The framework leverages a hybrid architecture that combines a ConvNeXt-Tiny backbone for high-level spatial feature extraction and a custom Spectral Branch to detect subtle frequency-domain artifacts (fingerprints) left by generative processes. A Dynamic Gating Network intelligently fuses these two pathways, allowing the model to adaptively weight spatial vs. spectral evidence for every individual image.
-
-## Technical Methodology
-
-### 1. Hybrid Spectral-Spatial Architecture
-The model employs two parallel pathways:
-- **Spatial Path:** A **ConvNeXt-Tiny** backbone extracting high-level semantic and textural features.
-- **Spectral Path:** A custom branch utilizing **Learnable Fourier Filters**. It transforms features into the frequency domain to identify periodic artifacts.
-
-### 2. Dynamic Gating Mechanism
-To optimize the fusion of the two paths, a **Dynamic Gating Network** was implemented. Instead of static averaging, the model adaptively calculates the trust weight for each path based on the image features:
-
-$$ \text{Final Logits} = g \cdot \text{SpectralLogits} + (1 - g) \cdot \text{SpatialLogits} $$
-$$\text{where } g = \sigma(\text{GatingNet}(\text{features}))$$
-
-### 3. Training and Regularization
-To achieve a validation accuracy of **97.7%**, the following techniques were utilized:
-- **EMA (Exponential Moving Average):** $\theta_{EMA}^{(t)} = \beta \theta_{EMA}^{(t-1)} + (1 - \beta) \theta^{(t)}$, where $\beta=0.999$.
-- **Stratified K-Fold Cross-Validation:** Ensuring robustness across $K=6$ folds.
-- **Label Smoothing:** Modifying targets to prevent over-confidence: $y_{ls} = y(1 - \alpha) + \frac{\alpha}{K}$.
-- **Advanced TTA (Test-Time Augmentation):** Averaging predictions across 5 augmented versions of each test image.
-
+## Proposed Methodology
+### 1 The Spectral-HELIX Architecture
+- **Spatial Path:** Utilizes a deep CNN (ConvNeXt/EfficientNet) to capture structural and textural patterns.
+- **Spectral Path:** Implements a GlobalFilterBlock based on the Fast Fourier Transform (FFT). This branch transforms the features into the frequency domain, applies a learnable complex-valued filter to isolate generative artifacts, and transforms them back to the spatial domain.
+### 2 Dynamic Gated Fusion
+Instead of a simple average, we implemented a Dynamic Gating Network. This small MLP analyzes the feature map and predicts a weight $α$ for each image, deciding whether the spatial or spectral path is more reliable for that specific sample.
+### 3 Training Recipe (Regularization)
+- **EMA (Exponential Moving Average):** Maintained a shadow copy of model weights to smooth out training noise.
+- **Mixup:** Synthetically expanded the dataset by interpolating pairs of images and labels, preventing the model from "memorizing" specific training samples.
+- **Stratified K-Fold:** Used 5-fold cross-validation to ensure the stability of the results and avoid data leakage.
+- **TTA (Test-Time Augmentation):** Averaged predictions across multiple flips and rotations during inference.
+  
 ## Data Acquisition
 
 Since the dataset is too large to be hosted on GitHub, you must download it from Kaggle (using Kaggle API).
